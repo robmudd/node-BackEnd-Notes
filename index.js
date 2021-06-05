@@ -1,8 +1,9 @@
 const express = require('express')
 const cors = require('cors')
 const app = express()
-app.use(express.static('build'))
+//app.use(express.static('build'))
 app.use(cors())
+app.use(express.json())
 
 let notes = [
     {
@@ -43,6 +44,18 @@ app.get('/api/notes/:id', (request, response) => {
         console.log('note not found')
         response.status(404).end()
     }
+})
+
+app.post('/api/notes', (request, response) => {
+    const newNote = request.body
+    console.log ("newNote is ", newNote)
+    let maxID = notes.length > 0 ? Math.max(...notes.map(n => n.id)) : 0
+    console.log ("length of notes is ", notes.length)
+    console.log("highest id is ", (Math.max(...notes.map(n=> n.id))))
+    console.log("maxID is ", maxID)
+    newNote.id = (Math.random() * 100000000)
+    notes.concat(newNote)
+    response.json(newNote)
 })
 
 app.delete('/api/notes/:id', (response, request) => {
