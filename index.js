@@ -56,6 +56,7 @@ app.post('/api/notes', (request, response) => {
     newNote.id = (Math.random() * 100000000)
     notes.concat(newNote)
     response.json(newNote)
+    console.log()
 })
 
 app.delete('/api/notes/:id', (response, request) => {
