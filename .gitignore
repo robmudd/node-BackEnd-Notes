@@ -1,6 +1,8 @@
 /node_modules/
 manualtesting.http
 package.json
+.env
+
 
 ####END OF USER-CREATED IGNORE FILE LIST####
 

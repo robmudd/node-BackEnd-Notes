@@ -1,61 +1,82 @@
+require('dotenv').config()
 const express = require('express')
+const mongoose = require('mongoose')
 const cors = require('cors')
+const Note = require('./models/note')
 const app = express()
 app.use(express.static('build'))
 app.use(cors())
 app.use(express.json())
 
-let notes = [
-    {
-        id: 1,
-        content: "HTML is easy",
-        date: "2019-05-30T17:30:31.098Z",
-        important: true
-    },
-    {
-        id: 2,
-        content: "Browser can execute only Javascript",
-        date: "2019-05-30T18:39:34.091Z",
-        important: false
-    },
-    {
-        id: 3,
-        content: "GET and POST are the most important methods of HTTP protocol",
-        date: "2019-05-30T19:20:14.298Z",
-        important: true
+/*const password = process.argv[2]
+
+const url = `mongodb+srv://robmudd:${password}@cluster0.zzzoh.mongodb.net/notes-app?retryWrites=true&w=majority`
+
+console.log(`password is ${password}`)
+
+mongoose.connect(url, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useUnifiedTopology: true,
+    useFindAndModify: false
+})
+
+const noteSchema = mongoose.Schema({
+    content: String,
+    date: Date,
+    important: Boolean
+})
+
+noteSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id=returnedObject._id.toString()
+        delete returnedObject.__v
+        delete returnedObject._id
     }
-]
+})
+
+const Note = mongoose.model("Note", noteSchema)*/
+
 
 app.get('/', (request, response) => {
     response.send('<h1 >Hello World!</h1>')
 })
 
 app.get('/api/notes', (request, response) =>{
-    response.json(notes)
+    //response.json(notes)
+    Note
+        .find({})
+        .then(notes => {
+            response.json(notes)
+        })
 })
 
 app.get('/api/notes/:id', (request, response) => {
     const id = request.params.id
-    const note = notes.find(n => Number(id) === n.id)
-    if (note) {
+    
+    Note.findById(id).then(note => {
         response.json(note)
-        console.log(note)
-    } else {
+    }).catch(error => {
         console.log('note not found')
         response.status(404).end()
-    }
+    })
+    
 })
 
 app.post('/api/notes', (request, response) => {
-    const newNote = request.body
+    const body = request.body
+    if (!body.content) {
+        return response.status(400).json({error: "error-- content missing from note!"})
+    }
+    const newNote = new Note({
+        content: body.content,
+        important: body.important || false,
+        date: new Date()
+    })
     console.log ("newNote is ", newNote)
-    let maxID = notes.length > 0 ? Math.max(...notes.map(n => n.id)) : 0
-    console.log ("length of notes is ", notes.length)
-    console.log("highest id is ", (Math.max(...notes.map(n=> n.id))))
-    console.log("maxID is ", maxID)
-    newNote.id = (Math.random() * 100000000)
-    notes.concat(newNote)
-    response.json(newNote)
+    newNote.save().then(savedNote=> {
+        response.json(savedNote)
+    })
 })
 
 app.delete('/api/notes/:id', (response, request) => {
@@ -64,7 +85,7 @@ app.delete('/api/notes/:id', (response, request) => {
     response.status(204).end()
 })
 
-const PORT = process.env.PORT || 3001
+const PORT = process.env.PORT
 
 app.listen(PORT)
 console.log(`app is running on port ${PORT}`)
